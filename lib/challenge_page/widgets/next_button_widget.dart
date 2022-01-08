@@ -36,14 +36,12 @@ class NextButtonWidget extends StatelessWidget {
         height: 48,
         child: TextButton(
             style: ButtonStyle(
-              overlayColor: MaterialStateProperty.all(backgroundColor),
+                overlayColor: MaterialStateProperty.all(backgroundColor),
                 backgroundColor: MaterialStateProperty.all(backgroundColor),
                 side: MaterialStateProperty.all(BorderSide(color: borderColor)),
                 shape: MaterialStateProperty.all(RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10)))),
-            onPressed: () {
-              onTap;
-            },
+            onPressed: onTap,
             child: Text(
               label,
               style: GoogleFonts.notoSans(

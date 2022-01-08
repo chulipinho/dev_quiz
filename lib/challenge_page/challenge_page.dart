@@ -1,16 +1,34 @@
+import 'package:devquiz/challenge_page/challenge_controller.dart';
 import 'package:devquiz/challenge_page/widgets/next_button_widget.dart';
 import 'package:devquiz/challenge_page/widgets/question_indicator_widget.dart';
-import 'package:devquiz/challenge_page/widgets/quiz_widget.dart';
+import 'package:devquiz/challenge_page/widgets/quiz/quiz_widget.dart';
+import 'package:devquiz/shared/models/question_model.dart';
 import 'package:flutter/material.dart';
 
 class ChallengePage extends StatefulWidget {
-  const ChallengePage({Key? key}) : super(key: key);
+  final List<QuestionModel> questions;
+  const ChallengePage({Key? key, required this.questions}) : super(key: key);
 
   @override
   State<ChallengePage> createState() => _ChallengePageState();
 }
 
 class _ChallengePageState extends State<ChallengePage> {
+  final controller = ChallegeController();
+  final pageController = PageController();
+  @override
+  void initState() {
+    pageController.addListener(() {
+      controller.curentPage = pageController.page!.toInt() + 1;
+    });
+    super.initState();
+  }
+
+  void nextPage() {
+    pageController.nextPage(
+        duration: Duration(milliseconds: 100), curve: Curves.linear);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -21,28 +39,63 @@ class _ChallengePageState extends State<ChallengePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              IconButton(onPressed: () => Navigator.pop(context), icon: Icon(Icons.close),),
-              QuestionIndicatorWidget(),
+              IconButton(
+                onPressed: () => Navigator.pop(context),
+                icon: Icon(Icons.close),
+              ),
+              ValueListenableBuilder<int>(
+                valueListenable: controller.curentPageNotifier,
+                builder: (context, value, _) => QuestionIndicatorWidget(
+                  curentPage: value,
+                  lengh: widget.questions.length,
+                ),
+              )
             ],
           ),
         ),
       ),
-      body: QuizWidget(title: "title"),
+      body: PageView(
+        physics: NeverScrollableScrollPhysics(),
+        controller: pageController,
+        children: widget.questions
+            .map((e) => QuizWidget(
+                  question: e,
+                  onChange: nextPage,
+                ))
+            .toList(),
+      ),
       bottomNavigationBar: SafeArea(
         bottom: true,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              Expanded(child: NextButtonWidget.white(label: "Pular", onTap: () {},)),
-              SizedBox(
-                width: 7,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+            child: ValueListenableBuilder(
+              valueListenable: controller.curentPageNotifier,
+              builder: (context, value, _) => Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  if (value != widget.questions.length)
+                    Expanded(
+                      child: NextButtonWidget.white(
+                        label: "Pular",
+                        onTap: nextPage,
+                      ),
+                    ),
+                  if (value == widget.questions.length)
+                    SizedBox(
+                      width: 7,
+                    ),
+                  if (value == widget.questions.length)
+                    Expanded(
+                      child: NextButtonWidget.green(
+                        label: "Confirmar",
+                        onTap: () {
+                          Navigator.pop(context);
+                        },
+                      ),
+                    ),
+                ],
               ),
-              Expanded(child: NextButtonWidget.green(label: "Confirmar", onTap: () {},)),
-            ],
-          ),
-        ),
+            )),
       ),
     );
   }
